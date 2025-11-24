@@ -1,262 +1,178 @@
-# HelpDesk - Voice-Based Troubleshooting System
+# HelpDesk AI – Cloud-Deployed Voice Support Agent
 
-A comprehensive help desk application that uses voice recording, AI transcription, RAG-based troubleshooting, and automated manual generation.
+HelpDesk AI is a voice-powered troubleshooting assistant that allows users to **speak their technical issue** and instantly receive **AI-generated step-by-step solutions**.  
+The system uses Whisper for transcription, a RAG pipeline for knowledge retrieval, and an LLM for generating clear troubleshooting instructions.  
+It is fully cloud-deployable and will be hosted on **AWS** for production.
 
-## Architecture Overview
+---
+
+## 🚀 Features
+
+- 🎤 **Voice Input** – Users describe their problem via microphone
+- 🧠 **Whisper Transcription** – Converts speech to text
+- 🔍 **Entity Extraction** – Finds devices, error codes, keywords
+- 📚 **RAG Pipeline** – Retrieves relevant solutions from the knowledge base (Pinecone)
+- 🤖 **LLM Troubleshooting** – Generates interactive step-by-step instructions
+- 📝 **Instruction Manual** – Auto-generated PDF/Markdown for reuse
+- 💾 **Persistent Sessions** – All interactions saved to PostgreSQL
+- ☁️ **AWS Deployment** – Backend hosted on AWS (EC2 or Cloud Run equivalent)
+
+---
+
+## 🧩 Architecture Overview
 
 ```
-┌─────────────────────────────────────────────────────────────┐
-│                      FRONTEND (React/Next.js)               │
-│  - Voice recording → Whisper STT                            │
-│  - Interactive troubleshooting panel                        │
-│  - PDF/Markdown manual download                             │
-└──────────────────────┬──────────────────────────────────────┘
-                       │ HTTP API
-┌──────────────────────▼──────────────────────────────────────┐
-│                    BACKEND (FastAPI)                         │
-│  - Audio transcription (Whisper)                            │
-│  - NLP entity extraction                                    │
-│  - RAG Pipeline:                                            │
-│    • Pinecone vector search                                │
-│    • Context assembly                                      │
-│    • LLM reasoning (GPT-3.5)                               │
-│  - Manual generation (PDF/Markdown)                        │
-│  - Session management (PostgreSQL)                         │
-└──────────────────────┬──────────────────────────────────────┘
-                       │
-        ┌──────────────┼──────────────┐
-        │              │              │
-        ▼              ▼              ▼
-    PostgreSQL    Pinecone         S3/GCS
-    (Sessions)    (Vector DB)    (File Storage)
+User → Microphone → Whisper (STT)
+       ↓
+Transcript → NLP Extraction → Vector Search (Pinecone)
+       ↓
+LLM Reasoning → Troubleshooting Steps → Instruction Manual
+       ↓
+Frontend UI (React/Next.js)
 ```
 
-## Tech Stack
+**Backend:** FastAPI (Python)  
+**Frontend:** React / Next.js  
+**Database:** PostgreSQL  
+**Vector DB:** Pinecone  
+**Storage (Prod):** AWS S3  
+**Hosting:** AWS EC2 / Elastic Beanstalk / Cloud Run  
+**AI Models:** Whisper + OpenAI GPT (or model of choice)
+
+---
+
+## 📁 Project Structure
+
+```
+HelpDeskAI/
+├── backend/
+│   ├── app/
+│   │   ├── api/               # API routes: transcribe, troubleshoot
+│   │   ├── db/                # Database models + session storage
+│   │   ├── rag/               # RAG pipeline: embed, search, reason
+│   │   ├── services/          # Whisper, manual generation
+│   │   └── utils/             # Helper functions
+│   ├── docs/manuals/          # Knowledge base documents
+│   ├── requirements.txt
+│   └── run.py
+│
+├── frontend/
+│   ├── src/components/
+│   ├── src/pages/
+│   ├── package.json
+│
+└── docker-compose.yml
+```
+
+---
+
+## 🛠️ Tech Stack
 
 ### Frontend
 
-- **Framework**: Next.js 14
-- **Language**: TypeScript
-- **Styling**: Tailwind CSS
-- **State Management**: Zustand
-- **HTTP Client**: Axios
+- React / Next.js
+- TailwindCSS
+- Axios
 
 ### Backend
 
-- **Framework**: FastAPI
-- **Language**: Python 3.11
-- **Database**: PostgreSQL
-- **Vector DB**: Pinecone
-- **LLM**: OpenAI GPT-3.5-turbo
-- **Embeddings**: SentenceTransformers
-- **Storage**: AWS S3 / Google Cloud Storage
-- **Document Generation**: ReportLab
+- FastAPI
+- Python
+- OpenAI Whisper
+- OpenAI GPT / Llama / Ollama (configurable)
 
-### Infrastructure
+### Infrastructure (AWS)
 
-- **Containerization**: Docker & Docker Compose
-- **Database**: PostgreSQL 15
+- **EC2** – Backend hosting
+- **S3** – Audio files, manuals
+- **RDS PostgreSQL** – Database
+- **IAM** – Permissions
+- **Route 53 (optional)** – Custom domain
 
-## Setup Instructions
+### Additional
 
-### Prerequisites
+- Pinecone (vector DB)
+- LangChain (optional orchestration)
+- PDF/Markdown manual creator
 
-- Docker & Docker Compose
-- OpenAI API Key
-- Pinecone API Key
-- AWS/GCS credentials (for file storage)
-- PostgreSQL (optional if using Docker)
+---
 
-### Environment Setup
+## 🧪 API Endpoints
 
-1. **Backend Configuration**
+### **POST /transcribe**
 
-   ```bash
-   cp backend/.env.example backend/.env
-   ```
+Upload an audio file → returns transcript
 
-   Edit `backend/.env` with your credentials:
+### **POST /troubleshoot**
 
-   ```env
-   DATABASE_URL=postgresql://helpdesk:password@localhost:5432/helpdesk
-   OPENAI_API_KEY=sk-...
-   PINECONE_API_KEY=...
-   PINECONE_INDEX_NAME=helpdesk-docs
-   AWS_ACCESS_KEY_ID=...
-   AWS_SECRET_ACCESS_KEY=...
-   AWS_BUCKET_NAME=helpdesk-storage
-   ```
+Send transcript → returns steps + manual
 
-2. **Frontend Configuration**
-   ```bash
-   cp frontend/.env.example frontend/.env
-   ```
+---
 
-### Running with Docker Compose
+## 📦 Installation (Local)
 
-```bash
-docker-compose up -d
+### Backend
+
 ```
-
-Access:
-
-- Frontend: http://localhost:3000
-- Backend API: http://localhost:8000
-- API Docs: http://localhost:8000/docs
-
-### Running Locally (Development)
-
-**Backend**:
-
-```bash
 cd backend
 pip install -r requirements.txt
-python run.py
+uvicorn app.main:app --reload
 ```
 
-**Frontend**:
+### Frontend
 
-```bash
+```
 cd frontend
 npm install
 npm run dev
 ```
 
-## Project Structure
+API will run at:
 
-```
-HelpDesk/
-├── frontend/                    # React/Next.js application
-│   ├── src/
-│   │   ├── components/         # React components
-│   │   ├── pages/              # Next.js pages
-│   │   └── hooks/              # Custom React hooks
-│   ├── public/                 # Static files
-│   └── package.json
-│
-├── backend/                     # FastAPI application
-│   ├── app/
-│   │   ├── api/               # API routes
-│   │   ├── services/          # Business logic
-│   │   ├── models/            # SQLAlchemy models
-│   │   ├── db/                # Database configuration
-│   │   ├── rag/               # RAG pipeline
-│   │   │   ├── entity_extraction.py
-│   │   │   ├── vector_search.py
-│   │   │   └── llm_reasoning.py
-│   │   └── utils/             # Utilities
-│   ├── tests/                 # Test files
-│   ├── requirements.txt
-│   └── run.py
-│
-├── config/                     # Configuration files
-├── docs/                       # Documentation
-└── docker-compose.yml
-```
+---
 
-## API Endpoints
+## ☁️ Deployment (AWS Summary)
 
-### Transcription
+**Backend options:**
 
-- **POST** `/api/transcribe` - Transcribe audio file
-  - Request: `multipart/form-data` with audio file
-  - Response: `{ session_id, transcript, status }`
+**Storage:**
 
-### Troubleshooting
+- S3 bucket for audio + manuals
 
-- **POST** `/api/troubleshoot` - Get troubleshooting solution
-  - Request: `{ transcript, session_id }`
-  - Response: `{ session_id, solution, status }`
+**Database:**
 
-### Manual Generation
+- RDS PostgreSQL or Supabase
 
-- **POST** `/api/generate-manual` - Generate PDF/Markdown manual
-  - Request: `{ issue_description, solution, format }`
-  - Response: `{ content, format, status }`
+**Vector Search:**
 
-## Database Schema
+- Pinecone cloud
 
-### user_sessions
+I can generate full AWS deployment instructions if you want the **step-by-step guide**.
 
-```sql
-CREATE TABLE user_sessions (
-  id UUID PRIMARY KEY,
-  transcript TEXT,
-  solution TEXT,
-  created_at TIMESTAMP,
-  updated_at TIMESTAMP
-);
-```
+---
 
-### manuals
+## 📌 Status
 
-```sql
-CREATE TABLE manuals (
-  id UUID PRIMARY KEY,
-  title VARCHAR(255),
-  content TEXT,
-  format VARCHAR(50),
-  created_at TIMESTAMP
-);
-```
+The backend RAG pipeline, ingestion, and testing are functional.  
+Next steps include:
 
-### contributed_solutions
+- Hook frontend → backend API
+- Deploy FastAPI on AWS
+- Deploy frontend on Vercel or AWS Amplify
+- Add PDF/manual generation to UI
 
-```sql
-CREATE TABLE contributed_solutions (
-  id UUID PRIMARY KEY,
-  issue VARCHAR(255),
-  solution TEXT,
-  created_at TIMESTAMP
-);
-```
+---
 
-## Pinecone Vector Database
+## 🧑‍💻 Contributors
 
-The system uses Pinecone to store and search documentation:
+- Isaiah Cruz
+- Michal Dzienski
+- Geovens Jean B.
+- Emmanuel McCrimmon
+- Dylan Stechmann
 
-**Stored Categories**:
+---
 
-- Documentation chunks
-- Community solutions
-- Troubleshooting steps
-- Error messages
+## 📄 License
 
-**Embedding Model**: `all-MiniLM-L6-v2` (SentenceTransformers)
-
-## Features
-
-✅ **Voice Recording** - Web-based microphone recording
-✅ **Whisper Transcription** - OpenAI Whisper STT
-✅ **Entity Extraction** - NLP-based keyword extraction
-✅ **RAG Pipeline** - Retrieval-Augmented Generation with Pinecone
-✅ **LLM Reasoning** - GPT-3.5 reasoning over context
-✅ **Session Management** - Track user sessions in PostgreSQL
-✅ **Manual Generation** - Auto-generate PDF/Markdown manuals
-✅ **File Storage** - AWS S3 or Google Cloud Storage
-✅ **Interactive UI** - Real-time troubleshooting interface
-
-## Development Roadmap
-
-- [ ] User authentication & authorization
-- [ ] Admin dashboard for solution management
-- [ ] Community contribution system
-- [ ] Multi-language support
-- [ ] Analytics dashboard
-- [ ] Caching layer (Redis)
-- [ ] Rate limiting
-- [ ] Advanced logging & monitoring
-
-## Contributing
-
-1. Create a feature branch
-2. Make your changes
-3. Submit a pull request
-
-## License
-
-MIT License - see LICENSE file for details
-
-## Support
-
-For issues and questions, please create a GitHub issue or contact the development team.
+MIT License.
