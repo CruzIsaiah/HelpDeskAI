@@ -147,8 +147,6 @@ API will run at:
 
 - Pinecone cloud
 
-I can generate full AWS deployment instructions if you want the **step-by-step guide**.
-
 ---
 
 ## 📌 Status
