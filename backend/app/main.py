@@ -5,9 +5,6 @@ from fastapi.middleware.cors import CORSMiddleware
 from dotenv import load_dotenv
 import os
 
-from app.api import transcribe, troubleshoot
-from app.db.database import init_db
-
 load_dotenv()
 
 app = FastAPI(
@@ -27,13 +24,20 @@ app.add_middleware(
 )
 
 # Initialize database
+from app.db.database import init_db
+
 @app.on_event("startup")
 async def startup():
     await init_db()
 
-# Include routers, with /api prefix for cleanliness
+# Import routers after app is created
+from app.api import transcribe, troubleshoot
+from app.api.rag import router as rag_router
+
+# Attach routers
 app.include_router(transcribe.router, prefix="/api")
 app.include_router(troubleshoot.router, prefix="/api")
+app.include_router(rag_router, prefix="/api")
 
 @app.get("/")
 async def root():
