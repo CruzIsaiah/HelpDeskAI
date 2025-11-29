@@ -48,7 +48,7 @@ export default function TroubleshootingPanel({
   const downloadManual = async (format: "pdf" | "markdown") => {
     try {
       const response = await fetch(
-        "http://localhost:8000/api/generate-manual",
+        "http://localhost:8000/api/manual/generate",
         {
           method: "POST",
           headers: { "Content-Type": "application/json" },

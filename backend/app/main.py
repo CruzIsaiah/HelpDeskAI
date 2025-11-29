@@ -33,11 +33,13 @@ async def startup():
 # Import routers after app is created
 from app.api import transcribe, troubleshoot
 from app.api.rag import router as rag_router
+from app.api.manual import router as manual_router
 
 # Attach routers
 app.include_router(transcribe.router, prefix="/api")
 app.include_router(troubleshoot.router, prefix="/api")
 app.include_router(rag_router, prefix="/api")
+app.include_router(manual_router, prefix="/api")
 
 @app.get("/")
 async def root():
