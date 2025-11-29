@@ -1,0 +1,16 @@
+{
+  "project": "HelpDesk AI",
+  "version": "1.0.0",
+  "deployed_at": "2025-11-29T03:29:47Z",
+  "deployed_by": "Deployment Automation",
+  "backend": {
+    "framework": "FastAPI",
+    "language": "Python",
+    "port": 8000
+  },
+  "frontend": {
+    "framework": "Next.js",
+    "language": "TypeScript/JavaScript",
+    "port": 3000
+  }
+}
