@@ -1,0 +1,17 @@
+[build]
+builder = "nixpacks"
+
+[deploy]
+numReplicas = 1
+startCommand = "python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+
+[environment]
+PYTHON_VERSION = "3.11"
+RAILWAY_RUN_ON_RESTART = "true"
+RAILWAY_WATCHEXITCODE = "false"
+RAILWAY_WAIT_ON_RESTART = "true"
+RAILWAY_RESTART_POLICY = "on_failure"
+RAILWAY_RESTART_MAX_RETRIES = "5"
+
+[start]
+cmd = "cd backend && python -m uvicorn app.main:app --host 0.0.0.0 --port $PORT"
