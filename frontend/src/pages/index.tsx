@@ -1,7 +1,7 @@
 import React, { useState } from "react";
 import Navbar from "@/components/Navbar";
 import VoiceRecorder from "@/components/VoiceRecorder";
-import TroubleshootingPanel from "@/components/TroubleshootingPanel";
+import RagPanel from "@/components/RagPanel";
 
 export default function Home() {
   const [sessionId, setSessionId] = useState<string | null>(null);
@@ -69,10 +69,7 @@ export default function Home() {
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Solution</h2>
 
           {sessionId && transcript ? (
-            <TroubleshootingPanel
-              sessionId={sessionId}
-              transcript={transcript}
-            />
+            <RagPanel transcript={transcript} />
           ) : (
             <p className="text-gray-600">
               Ask a question or record your issue to get started…

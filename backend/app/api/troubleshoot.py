@@ -13,8 +13,9 @@ from app.rag.entity_extraction import extract_entities
 from app.rag.vector_search import retrieve_docs
 from app.rag.llm_reasoning import generate_steps_and_manual
 from app.rag.llm_reasoning import Step
-from app.services.device_service import fetch_all_devices
 
+# 🔥 NEW — correct synchronous device service import
+from app.services.device_service import fetch_all_devices
 
 
 router = APIRouter(prefix="/troubleshoot", tags=["Troubleshooting"])
@@ -50,64 +51,93 @@ class TroubleshootResponse(BaseModel):
 @router.post("/", response_model=TroubleshootResponse)
 async def troubleshoot(req: TroubleshootRequest, db: Session = Depends(get_db)):
     """
-    Takes the transcript, runs:
+    Main troubleshooting endpoint:
         - Entity extraction
+        - Device matching
         - Pinecone retrieval
         - LLM reasoning
-    Updates or creates a session and returns a full troubleshooting response.
+        - Store results in DB
     """
     try:
         query = req.transcript
 
-        # 1. Extract entities
+        # -------------------------
+        # 1. Extract entities (problem, device hints, issue)
+        # -------------------------
         entities = extract_entities(query)
 
-        # 2. Retrieve relevant docs from Pinecone
+        # -------------------------
+        # 2. Load SAVED USER DEVICES and inject into entities
+        # -------------------------
+        saved_devices = fetch_all_devices(db)
+
+        entities["user_devices"] = [
+            {
+                "type": d.type,
+                "name": d.name,
+                "model": d.model,
+                "os_version": d.os_version,
+                "notes": d.notes,
+            }
+            for d in saved_devices
+        ]
+
+        # -------------------------
+        # 3. Retrieve relevant docs from Pinecone
+        # -------------------------
         docs = retrieve_docs(query)
 
-        # 3. Generate steps + manual markdown
+        # -------------------------
+        # 4. Generate steps + manual markdown (LLM reasoning)
+        # -------------------------
         steps, manual_md = generate_steps_and_manual(query, docs, entities)
 
-        # 4. Convert steps to response format with initial "pending" status
+        # Format steps for API response
         step_responses = [
             StepResponse(id=step.id, text=step.text, status="pending")
             for step in steps
         ]
 
-        # 5. Handle session - either create new or update existing
+        # -------------------------
+        # 5. Session management
+        # -------------------------
+
         session_id = req.session_id or str(uuid4())
-        
-        # Check if session exists (for updates)
-        existing_session = db.query(HelpdeskSession).filter(
-            HelpdeskSession.id == session_id
-        ).first() if req.session_id else None
+
+        existing_session = (
+            db.query(HelpdeskSession)
+            .filter(HelpdeskSession.id == session_id)
+            .first()
+            if req.session_id
+            else None
+        )
 
         if existing_session:
-            # Update existing session
             existing_session.entities = entities
             existing_session.steps = [s.dict() for s in step_responses]
             existing_session.manual_markdown = manual_md
             db.commit()
             db.refresh(existing_session)
         else:
-            # Create new session
             new_session = HelpdeskSession(
                 transcript=query,
                 entities=entities,
                 steps=[s.dict() for s in step_responses],
-                manual_markdown=manual_md
+                manual_markdown=manual_md,
             )
             db.add(new_session)
             db.commit()
             db.refresh(new_session)
 
-        # 6. Return the response in format frontend expects
+        # -------------------------
+        # 6. Build final response
+        # -------------------------
         return TroubleshootResponse(
             session_id=session_id,
             entities=entities,
             steps=step_responses,
             manual_markdown=manual_md,
-            solution={"solution": manual_md}  # Frontend compatibility
+            solution={"solution": manual_md},  # Frontend compatibility
         )
 
     except Exception as e:

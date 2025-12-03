@@ -15,31 +15,29 @@ export default function TroubleshootingPanel({
   const [error, setError] = useState<string>("");
 
   useEffect(() => {
-    getTroubleshooting();
+    getSolution();
   }, [sessionId]);
 
-  const getTroubleshooting = async () => {
+  const getSolution = async () => {
     setLoading(true);
+
     try {
-      const response = await fetch("http://localhost:8000/api/troubleshoot", {
+      const response = await fetch("http://localhost:8000/api/rag/query", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          transcript,
-          session_id: sessionId,
-        }),
+        body: JSON.stringify({ query: transcript }),
       });
 
       const data = await response.json();
 
       if (response.ok) {
-        setSolution(data.solution.solution);
+        setSolution(data.answer);
       } else {
-        setError(data.detail || "Failed to get solution");
+        setError(data.detail || "Failed to get solution.");
       }
     } catch (err) {
-      setError("Error connecting to server");
-      console.error("Error:", err);
+      console.error("Error fetching solution:", err);
+      setError("Could not connect to the server.");
     } finally {
       setLoading(false);
     }
@@ -66,8 +64,10 @@ export default function TroubleshootingPanel({
         const blob = new Blob([Buffer.from(data.content, "base64")], {
           type: format === "pdf" ? "application/pdf" : "text/markdown",
         });
+
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
+
         a.href = url;
         a.download = `troubleshooting-guide.${format === "pdf" ? "pdf" : "md"}`;
         a.click();
@@ -76,6 +76,10 @@ export default function TroubleshootingPanel({
       console.error("Download failed:", error);
     }
   };
+
+  // ----------------------------
+  // UI RENDERING
+  // ----------------------------
 
   if (loading) {
     return (
@@ -95,18 +99,22 @@ export default function TroubleshootingPanel({
 
   return (
     <div className="space-y-6">
+      {/* USER ISSUE */}
       <div className="card p-4">
         <h3 className="font-semibold text-gray-900 mb-2">Your Issue:</h3>
         <p className="text-gray-700">{transcript}</p>
       </div>
 
+      {/* AI SOLUTION */}
       <div className="card card-strong p-6">
         <h3 className="font-semibold text-gray-900 mb-4">Solution:</h3>
+
         <ReactMarkdown className="prose prose-sm max-w-none">
           {solution}
         </ReactMarkdown>
       </div>
 
+      {/* DOWNLOAD BUTTONS */}
       <div className="flex gap-4">
         <button
           onClick={() => downloadManual("pdf")}
@@ -114,6 +122,7 @@ export default function TroubleshootingPanel({
         >
           Download PDF
         </button>
+
         <button
           onClick={() => downloadManual("markdown")}
           className="btn btn-ghost flex-1"

@@ -4,87 +4,71 @@ from sqlalchemy.orm import Session
 
 from app.rag.vector_search import retrieve_docs
 from app.utils.llm import chat_completion
-from app.db.database import get_db
-from app.db.models import UserDevice
-from app.services.device_matcher import detect_device_type
+from app.services.device_service import fetch_all_devices
+from app.db.database import get_db   # ✅ FIXED IMPORT
 
-router = APIRouter(tags=["RAG"])
+router = APIRouter(prefix="/rag", tags=["RAG"])
 
 
 class QueryRequest(BaseModel):
     query: str
 
 
-def get_device_context(db: Session):
-    return db.query(UserDevice).all()
-
-
 @router.post("/query")
-async def rag_query(payload: QueryRequest, db: Session = Depends(get_db)):
-    query = payload.query.strip()
+async def rag_query(payload: QueryRequest, db: Session = Depends(get_db)):  # ✅ get_db now works
+    query = payload.query
 
-    # ---------------------------
-    # Detect the device user is talking about
-    # ---------------------------
-    detected_device = detect_device_type(query)
-    saved_devices = get_device_context(db)
-
-    # Does user have any matching saved device?
-    matched = None
-    if detected_device:
-        for d in saved_devices:
-            if d.type == detected_device:
-                matched = d
-                break
-
-    # If detected device exists BUT not in user’s saved list → ask them
-    if detected_device and not matched:
-        return {
-            "needs_device": True,
-            "message": (
-                f"It sounds like you're asking about a **{detected_device}**, "
-                "but you don't have one saved in your device list.\n\n"
-                "Please add it first so I can give accurate troubleshooting."
-            )
-        }
-
-    # ---------------------------
-    # If device is matched → continue normally
-    # ---------------------------
-    device_summary = "No device info."
-    if matched:
-        device_summary = (
-            f"{matched.type.capitalize()} — {matched.name} {matched.model or ''} "
-            f"(OS: {matched.os_version or 'unknown'})"
-        )
-
+    # ------------------------------
+    # 1. Retrieve Docs (RAG)
+    # ------------------------------
     docs = retrieve_docs(query)
     context_docs = "\n".join(docs) if docs else "No relevant documents found."
 
+    # ------------------------------
+    # 2. Fetch Saved Devices
+    # ------------------------------
+    devices = fetch_all_devices(db)
+
+    if devices:
+        formatted_devices = "\n".join([
+            f"- {d.type} | {d.name} | {d.model} | OS: {d.os_version or 'N/A'}"
+            for d in devices
+        ])
+    else:
+        formatted_devices = "User has no saved devices."
+
+    # ------------------------------
+    # 3. Build Prompt
+    # ------------------------------
     system_prompt = (
-        "You are a helpful troubleshooting assistant. "
-        "Use BOTH the documentation context and the user's device details "
-        "to provide correct steps."
+        "You are a highly helpful troubleshooting assistant.\n"
+        "You ALWAYS check the user's saved device list when answering.\n"
+        "If the user asks 'what devices do I own?', return the device list.\n"
+        "Use RAG document context only when relevant.\n"
+        "If the context does not contain the answer, say so clearly.\n"
+        "If troubleshooting is needed, tailor steps to the user's exact device.\n"
     )
 
     user_prompt = f"""
-User Device:
-{device_summary}
-
-Documentation Context:
-{context_docs}
-
-User Question:
+USER QUESTION:
 {query}
 
-Provide a clear, helpful solution:
+USER DEVICES:
+{formatted_devices}
+
+DOCUMENT CONTEXT:
+{context_docs}
+
+Now produce the best possible answer using the information above.
 """
 
+    # ------------------------------
+    # 4. LLM response
+    # ------------------------------
     answer = chat_completion(system_prompt, user_prompt)
 
     return {
-        "device_used": device_summary,
+        "query": query,
         "answer": answer,
-        "sources": docs,
-        "needs_device": False,
+        "sources": docs
     }

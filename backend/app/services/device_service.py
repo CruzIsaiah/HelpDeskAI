@@ -2,7 +2,9 @@
 
 from sqlalchemy.orm import Session
 from app.db.models import UserDevice
-from app.db.database import get_db
 
 def fetch_all_devices(db: Session):
+    """
+    Returns all saved user devices using a normal SQLAlchemy sync session.
+    """
     return db.query(UserDevice).all()
