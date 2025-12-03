@@ -64,6 +64,8 @@ body,
 body {
   background: linear-gradient(180deg, var(--bg-start), var(--bg-end));
   color: #0f172a; /* slate-900 */
+  min-height: 100vh;
+  background: linear-gradient(180deg, var(--bg-start), var(--bg-end));
 }
 
 /* app container */

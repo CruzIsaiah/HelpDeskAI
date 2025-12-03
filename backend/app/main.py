@@ -13,8 +13,11 @@ app = FastAPI(
     version="1.0.0"
 )
 
-# CORS middleware
+# ------------------------------
+# CORS
+# ------------------------------
 origins = os.getenv("CORS_ORIGINS", "http://localhost:3000").split(",")
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=origins,
@@ -23,24 +26,40 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Initialize database
+# ------------------------------
+# DATABASE INIT
+# ------------------------------
 from app.db.database import init_db
 
 @app.on_event("startup")
 async def startup():
     await init_db()
 
-# Import routers after app is created
-from app.api import transcribe, troubleshoot
-from app.api.rag import router as rag_router
-from app.api.manual import router as manual_router
+# ------------------------------
+# ROUTERS
+# ------------------------------
+from app.api import (
+    transcribe,
+    troubleshoot,
+    history,
+    manual,
+    rag,
+    auth,
+    devices
+)
 
-# Attach routers
 app.include_router(transcribe.router, prefix="/api")
 app.include_router(troubleshoot.router, prefix="/api")
-app.include_router(rag_router, prefix="/api")
-app.include_router(manual_router, prefix="/api")
+app.include_router(history.router, prefix="/api")
+app.include_router(manual.router, prefix="/api")
+app.include_router(rag.router, prefix="/api")
+app.include_router(auth.router, prefix="/api")
+app.include_router(devices.router, prefix="/api")
 
+
+# ------------------------------
+# ROOT / HEALTH
+# ------------------------------
 @app.get("/")
 async def root():
     return {"message": "HelpDesk API is running"}

@@ -13,6 +13,8 @@ from app.rag.entity_extraction import extract_entities
 from app.rag.vector_search import retrieve_docs
 from app.rag.llm_reasoning import generate_steps_and_manual
 from app.rag.llm_reasoning import Step
+from app.services.device_service import fetch_all_devices
+
 
 
 router = APIRouter(prefix="/troubleshoot", tags=["Troubleshooting"])

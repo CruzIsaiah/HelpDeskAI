@@ -1,59 +1,84 @@
-import React from "react";
+import React, { useState } from "react";
+import Navbar from "@/components/Navbar";
 import VoiceRecorder from "@/components/VoiceRecorder";
 import TroubleshootingPanel from "@/components/TroubleshootingPanel";
 
 export default function Home() {
-  const [sessionId, setSessionId] = React.useState<string | null>(null);
-  const [transcript, setTranscript] = React.useState<string>("");
+  const [sessionId, setSessionId] = useState<string | null>(null);
+  const [transcript, setTranscript] = useState<string>("");
+  const [typedInput, setTypedInput] = useState("");
+
+  const handleTextSubmit = () => {
+    if (!typedInput.trim()) return;
+    setTranscript(typedInput);
+    setSessionId("manual-" + Date.now());
+  };
 
   return (
-    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 pb-20">
       <div className="app-shell px-4 py-8">
-        <header className="app-header mb-8">
-          <nav className="flex items-center justify-between mb-6">
-            <div className="flex items-center gap-4">
-              <img src="/logo.svg" alt="logo" className="h-10 w-auto" />
-              <div>
-                <h1 className="text-2xl app-title">HelpDesk Assistant</h1>
-                <p className="text-sm app-subtitle">
-                  Voice-powered troubleshooting
-                </p>
-              </div>
-            </div>
-            <div className="hidden sm:flex gap-4 items-center">
-              <a className="btn btn-ghost" href="#">
-                Docs
-              </a>
-              <button className="btn btn-primary">Get Help</button>
-            </div>
-          </nav>
+        {/* NAVBAR */}
+        <header className="app-header mb-8 flex flex-col items-center">
+          <Navbar />
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 app-grid">
-          {/* Voice Recording Section */}
-          <section className="card p-8">
-            <h2 className="section-title mb-6">Record Issue</h2>
-            <VoiceRecorder
-              onTranscript={setTranscript}
-              onSessionId={setSessionId}
-            />
-          </section>
+        {/* RECORD SECTION – wide card */}
+        <section id="record" className="card p-6 mb-6 w-full">
+          <h2 className="text-xl font-semibold text-gray-800 mb-4">
+            Record or Type Your Issue
+          </h2>
 
-          {/* Troubleshooting Section */}
-          <section className="card card-strong p-8">
-            <h2 className="section-title mb-6">Solution</h2>
-            {sessionId && transcript ? (
-              <TroubleshootingPanel
-                sessionId={sessionId}
-                transcript={transcript}
-              />
-            ) : (
-              <div className="text-gray-500 text-center py-12">
-                <p>Record your issue to get started...</p>
-              </div>
-            )}
-          </section>
-        </div>
+          {/* Voice recorder on top */}
+          <div className="mb-4">
+            <VoiceRecorder
+              onTranscript={(t) => setTranscript(t)}
+              onSessionId={(id) => setSessionId(id)}
+            />
+          </div>
+
+          {/* OR divider */}
+          <div className="flex items-center my-3">
+            <div className="flex-grow h-px bg-gray-300" />
+            <span className="mx-3 text-gray-500 text-sm">OR</span>
+            <div className="flex-grow h-px bg-gray-300" />
+          </div>
+
+          {/* Typed input – hard force full width */}
+          <div className="mt-3 w-full">
+            <textarea
+              value={typedInput}
+              onChange={(e) => setTypedInput(e.target.value)}
+              rows={4}
+              placeholder="Type your question here..."
+              className="block p-3 rounded-md border border-gray-300 focus:ring-2 focus:ring-indigo-500 focus:outline-none mb-4"
+              style={{ width: "100%" }}
+            />
+
+            <button
+              onClick={handleTextSubmit}
+              className="btn btn-primary"
+              style={{ width: "100%" }}
+            >
+              Submit Question
+            </button>
+          </div>
+        </section>
+
+        {/* SOLUTION SECTION – wide card below */}
+        <section className="card card-strong p-6 w-full">
+          <h2 className="text-xl font-semibold text-gray-800 mb-2">Solution</h2>
+
+          {sessionId && transcript ? (
+            <TroubleshootingPanel
+              sessionId={sessionId}
+              transcript={transcript}
+            />
+          ) : (
+            <p className="text-gray-600">
+              Ask a question or record your issue to get started…
+            </p>
+          )}
+        </section>
       </div>
     </main>
   );
