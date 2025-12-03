@@ -87,7 +87,7 @@ export default function TroubleshootingPanel({
 
   if (error) {
     return (
-      <div className="bg-red-50 border border-red-200 rounded-lg p-4 text-red-700">
+      <div className="card p-4 bg-red-50 border-red-200 text-red-700">
         {error}
       </div>
     );
@@ -95,12 +95,12 @@ export default function TroubleshootingPanel({
 
   return (
     <div className="space-y-6">
-      <div className="bg-gray-50 rounded-lg p-4">
+      <div className="card p-4">
         <h3 className="font-semibold text-gray-900 mb-2">Your Issue:</h3>
         <p className="text-gray-700">{transcript}</p>
       </div>
 
-      <div className="bg-blue-50 rounded-lg p-6 border border-blue-200">
+      <div className="card card-strong p-6">
         <h3 className="font-semibold text-gray-900 mb-4">Solution:</h3>
         <ReactMarkdown className="prose prose-sm max-w-none">
           {solution}
@@ -110,13 +110,13 @@ export default function TroubleshootingPanel({
       <div className="flex gap-4">
         <button
           onClick={() => downloadManual("pdf")}
-          className="flex-1 px-4 py-2 bg-red-500 hover:bg-red-600 text-white rounded-lg font-semibold transition-colors"
+          className="btn btn-primary flex-1"
         >
           Download PDF
         </button>
         <button
           onClick={() => downloadManual("markdown")}
-          className="flex-1 px-4 py-2 bg-gray-600 hover:bg-gray-700 text-white rounded-lg font-semibold transition-colors"
+          className="btn btn-ghost flex-1"
         >
           Download Markdown
         </button>

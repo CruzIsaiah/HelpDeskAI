@@ -82,10 +82,8 @@ export default function VoiceRecorder({
       <button
         onClick={recording ? stopRecording : startRecording}
         disabled={loading}
-        className={`flex items-center gap-2 px-8 py-4 rounded-lg font-semibold transition-colors ${
-          recording
-            ? "bg-red-500 hover:bg-red-600 text-white"
-            : "bg-blue-500 hover:bg-blue-600 text-white"
+        className={`btn ${
+          recording ? "bg-red-500 hover:bg-red-600 text-white" : "btn-primary"
         } disabled:opacity-50`}
       >
         {loading ? (

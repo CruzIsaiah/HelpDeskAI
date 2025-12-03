@@ -8,22 +8,31 @@ export default function Home() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
-      <div className="container mx-auto px-4 py-8">
-        <header className="text-center mb-12">
-          <h1 className="text-4xl font-bold text-gray-900 mb-2">
-            HelpDesk Assistant
-          </h1>
-          <p className="text-xl text-gray-600">
-            Voice-powered troubleshooting system
-          </p>
+      <div className="app-shell px-4 py-8">
+        <header className="app-header mb-8">
+          <nav className="flex items-center justify-between mb-6">
+            <div className="flex items-center gap-4">
+              <img src="/logo.svg" alt="logo" className="h-10 w-auto" />
+              <div>
+                <h1 className="text-2xl app-title">HelpDesk Assistant</h1>
+                <p className="text-sm app-subtitle">
+                  Voice-powered troubleshooting
+                </p>
+              </div>
+            </div>
+            <div className="hidden sm:flex gap-4 items-center">
+              <a className="btn btn-ghost" href="#">
+                Docs
+              </a>
+              <button className="btn btn-primary">Get Help</button>
+            </div>
+          </nav>
         </header>
 
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 app-grid">
           {/* Voice Recording Section */}
-          <section className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-              Record Issue
-            </h2>
+          <section className="card p-8">
+            <h2 className="section-title mb-6">Record Issue</h2>
             <VoiceRecorder
               onTranscript={setTranscript}
               onSessionId={setSessionId}
@@ -31,10 +40,8 @@ export default function Home() {
           </section>
 
           {/* Troubleshooting Section */}
-          <section className="bg-white rounded-lg shadow-lg p-8">
-            <h2 className="text-2xl font-semibold text-gray-900 mb-6">
-              Solution
-            </h2>
+          <section className="card card-strong p-8">
+            <h2 className="section-title mb-6">Solution</h2>
             {sessionId && transcript ? (
               <TroubleshootingPanel
                 sessionId={sessionId}
