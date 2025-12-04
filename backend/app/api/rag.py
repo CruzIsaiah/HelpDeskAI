@@ -6,12 +6,14 @@ from app.rag.vector_search import retrieve_docs
 from app.utils.llm import chat_completion
 from app.services.device_service import fetch_all_devices
 from app.db.database import get_db   # ✅ FIXED IMPORT
+from app.db.models import HelpdeskSession
 
 router = APIRouter(prefix="/rag", tags=["RAG"])
 
 
 class QueryRequest(BaseModel):
     query: str
+    session_id: str | None = None
 
 
 @router.post("/query")
@@ -66,6 +68,30 @@ Now produce the best possible answer using the information above.
     # 4. LLM response
     # ------------------------------
     answer = chat_completion(system_prompt, user_prompt)
+
+    # ------------------------------
+    # 5. Persist a lightweight session for history (so the UI can show it)
+    # ------------------------------
+    try:
+        session_id = payload.session_id
+        if session_id:
+            # attempt to update existing session by id (if it exists)
+            existing = db.query(HelpdeskSession).filter(HelpdeskSession.id == session_id).first()
+            if existing:
+                existing.transcript = query
+                existing.manual_markdown = answer
+                db.commit()
+            else:
+                new_s = HelpdeskSession(transcript=query, manual_markdown=answer)
+                db.add(new_s)
+                db.commit()
+        else:
+            new_s = HelpdeskSession(transcript=query, manual_markdown=answer)
+            db.add(new_s)
+            db.commit()
+    except Exception as e:
+        # Persist failures should not block the response — log for debugging
+        print("Warning: failed to persist session for history:", e)
 
     return {
         "query": query,

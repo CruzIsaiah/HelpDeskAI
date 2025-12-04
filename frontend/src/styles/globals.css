@@ -185,3 +185,9 @@ body {
   background: rgba(15, 23, 42, 0.12);
   border-radius: 10px;
 }
+
+/* Chat input sizing utility (used by RagPanel) */
+.chat-input-size {
+  width: 100%;
+  height: 240px;
+}

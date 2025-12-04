@@ -22,13 +22,12 @@ export default function Home() {
           <Navbar />
         </header>
 
-        {/* RECORD SECTION – wide card */}
+        {/* RECORD SECTION */}
         <section id="record" className="card p-6 mb-6 w-full">
           <h2 className="text-xl font-semibold text-gray-800 mb-4">
             Record or Type Your Issue
           </h2>
 
-          {/* Voice recorder on top */}
           <div className="mb-4">
             <VoiceRecorder
               onTranscript={(t) => setTranscript(t)}
@@ -43,7 +42,7 @@ export default function Home() {
             <div className="flex-grow h-px bg-gray-300" />
           </div>
 
-          {/* Typed input – hard force full width */}
+          {/* Typed input */}
           <div className="mt-3 w-full">
             <textarea
               value={typedInput}
@@ -64,12 +63,12 @@ export default function Home() {
           </div>
         </section>
 
-        {/* SOLUTION SECTION – wide card below */}
+        {/* SOLUTION SECTION */}
         <section className="card card-strong p-6 w-full">
           <h2 className="text-xl font-semibold text-gray-800 mb-2">Solution</h2>
 
           {sessionId && transcript ? (
-            <RagPanel transcript={transcript} />
+            <RagPanel sessionId={sessionId} transcript={transcript} />
           ) : (
             <p className="text-gray-600">
               Ask a question or record your issue to get started…

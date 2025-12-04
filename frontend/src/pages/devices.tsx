@@ -1,7 +1,6 @@
 import { useState, useEffect } from "react";
 import Link from "next/link";
 
-// DEVICE DATASET
 const DEVICE_DATA: Record<string, Record<string, string[]>> = {
   phone: {
     Apple: [
@@ -123,9 +122,8 @@ export default function DevicesPage() {
 
   return (
     <main className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100 p-8">
-      <div className="max-w-6xl mx-auto">
-        {/* NAVBAR */}
-        <nav className="flex items-center justify-between mb-10">
+      <div className="max-w-4xl mx-auto flex flex-col items-center">
+        <nav className="w-full flex items-center justify-between mb-10">
           <div className="flex items-center gap-4">
             <img src="/favicon.svg" alt="logo" className="h-10 w-10" />
 
@@ -150,16 +148,13 @@ export default function DevicesPage() {
           </div>
         </nav>
 
-        {/* GRID */}
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-10">
-          {/* ADD DEVICE FORM */}
+        <div className="w-full grid grid-cols-1 lg:grid-cols-2 gap-10">
           <div className="card p-6">
             <h2 className="text-xl font-semibold mb-6 text-gray-800">
               Add a Device
             </h2>
 
             <form className="space-y-6" onSubmit={handleAddDevice}>
-              {/* Device Type */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Device Type
@@ -182,7 +177,6 @@ export default function DevicesPage() {
                 </select>
               </div>
 
-              {/* Brand */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Brand
@@ -206,7 +200,6 @@ export default function DevicesPage() {
                 </select>
               </div>
 
-              {/* Model */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Model
@@ -218,17 +211,14 @@ export default function DevicesPage() {
                   onChange={(e) => setModel(e.target.value)}
                 >
                   <option value="">Select Model</option>
-                  {type &&
-                    name &&
-                    DEVICE_DATA[type][name].map((m) => (
-                      <option key={m} value={m}>
-                        {m}
-                      </option>
-                    ))}
+                  {DEVICE_DATA[type]?.[name]?.map((m) => (
+                    <option key={m} value={m}>
+                      {m}
+                    </option>
+                  ))}
                 </select>
               </div>
 
-              {/* OS Version */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   OS Version
@@ -241,7 +231,6 @@ export default function DevicesPage() {
                 />
               </div>
 
-              {/* Notes */}
               <div className="space-y-2">
                 <label className="block text-sm font-medium text-gray-700">
                   Notes
@@ -261,7 +250,6 @@ export default function DevicesPage() {
             </form>
           </div>
 
-          {/* DEVICE LIST */}
           <div className="card p-6">
             <h2 className="text-xl font-semibold mb-6 text-gray-800">
               Your Devices
