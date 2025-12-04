@@ -78,6 +78,9 @@ export default function TroubleshootingPanel({
         : messagesRef.current;
       const convo = buildConversationText(convoMsgs);
 
+      console.log("Sending query:", convo); // DEBUG LOG
+      console.log("Session ID:", sessionId); // DEBUG LOG
+
       const apiBase =
         process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
       const response = await fetch(`${apiBase}/api/rag/query`, {
@@ -88,7 +91,10 @@ export default function TroubleshootingPanel({
 
       const data = await response.json();
 
+      console.log("API Response:", data); // DEBUG LOG
+
       if (response.ok) {
+        console.log("Answer received:", data.answer); // DEBUG LOG
         // Append assistant reply, avoid duplicate consecutive assistant content
         setMessages((m) => {
           const last = m.length ? m[m.length - 1] : undefined;
@@ -102,6 +108,7 @@ export default function TroubleshootingPanel({
         });
         setInput("");
       } else {
+        console.error("API Error:", data); // DEBUG LOG
         setError(data.detail || "Failed to get solution.");
       }
     } catch (err) {
